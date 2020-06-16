@@ -16,22 +16,22 @@ done
 
 if [ -z "$AWS_REGION" ]; then
     echo "exit: No AWS_REGION specified (-r parameter)"
-    exit;
+    exit 1;
 fi
 
 if [ -z "$ECS_CLUSTER_NAME" ]; then
     echo "exit: No ECS_CLUSTER_NAME specified (-c parameter)"
-    exit;
+    exit 1;
 fi
 
 if [ -z "$ECS_SERVICE_NAME" ]; then
     echo "exit: No ECS_SERVICE_NAME specified (-s parameter)"
-    exit;
+    exit 1;
 fi
 
 if [ -z "$IMAGE_URL" ]; then
     echo "exit: No IMAGE_URL specified (-i parameter)"
-    exit;
+    exit 1;
 fi
 
 echo "AWS_REGION: " $AWS_REGION

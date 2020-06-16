@@ -3,12 +3,11 @@
 
 set -e
 
-while getopts r:p:c:s:i: option
+while getopts r:c:s:i: option
 do
 case "${option}"
 in
 r) AWS_REGION=${OPTARG};;
-p) AWS_PROFILE=${OPTARG};;
 c) ECS_CLUSTER_NAME=${OPTARG};;
 s) ECS_SERVICE_NAME=${OPTARG};;
 i) IMAGE_URL=${OPTARG};;
@@ -17,11 +16,6 @@ done
 
 if [ -z "$AWS_REGION" ]; then
     echo "exit: No AWS_REGION specified (-r parameter)"
-    exit;
-fi
-
-if [ -z "$AWS_PROFILE" ]; then
-    echo "exit: No AWS_PROFILE specified (-p parameter)"
     exit;
 fi
 
@@ -48,11 +42,11 @@ echo "IMAGE_URL: " $IMAGE_URL
 
 
 # Get the name of task definition
-TASK_DEFINITION_NAME=$(aws ecs describe-services --profile $AWS_PROFILE --region $AWS_REGION --services $ECS_SERVICE_NAME --cluster $ECS_CLUSTER_NAME | jq -r .services[0].taskDefinition)
+TASK_DEFINITION_NAME=$(aws ecs describe-services --region $AWS_REGION --services $ECS_SERVICE_NAME --cluster $ECS_CLUSTER_NAME | jq -r .services[0].taskDefinition)
 echo "Current task definition name: $TASK_DEFINITION_NAME"
 
 # Get the task definition itself
-TASK_DEFINITION=$(aws ecs describe-task-definition --profile $AWS_PROFILE --region $AWS_REGION --task-def "$TASK_DEFINITION_NAME" | jq '.taskDefinition')
+TASK_DEFINITION=$(aws ecs describe-task-definition --region $AWS_REGION --task-def "$TASK_DEFINITION_NAME" | jq '.taskDefinition')
 
 # Make sure we have only 1 container definition in this task, as this script only supports 1 at this time
 NUMBER_OF_CONTAINER_DEFINITIONS=$(echo $TASK_DEFINITION | jq '.containerDefinitions | length')
@@ -72,9 +66,9 @@ TASK_DEFINITION=$(echo $TASK_DEFINITION | jq '{family: .family, taskRoleArn: .ta
 TASK_DEFINITION=$(echo $TASK_DEFINITION | jq 'del(.[] | nulls)')
 
 # Deploy the updated task definition and retrieve its ARN
-TASK_ARN=`aws ecs register-task-definition --profile $AWS_PROFILE --region $AWS_REGION --cli-input-json "$TASK_DEFINITION" | jq -r .taskDefinition.taskDefinitionArn`
+TASK_ARN=`aws ecs register-task-definition --region $AWS_REGION --cli-input-json "$TASK_DEFINITION" | jq -r .taskDefinition.taskDefinitionArn`
 echo "New task definition registered, $TASK_ARN"
 
 # Force new deployment of the ECS service (with updated task definition)
-aws ecs update-service --profile $AWS_PROFILE --region $AWS_REGION --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --task-definition "$TASK_ARN"
+aws ecs update-service --region $AWS_REGION --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --task-definition "$TASK_ARN"
 echo "Service updated"

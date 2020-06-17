@@ -34,10 +34,10 @@ echo "CODE_BUILD_PROJECT_NAME: " $CODE_BUILD_PROJECT_NAME
 echo "PREVIOUS_COMMIT_ID: " $PREVIOUS_COMMIT_ID
 
 # Get most recent build IDs
-BUILD_IDS=$(aws --region $AWS_REGION --profile tslkd codebuild list-builds-for-project --project-name $CODEBUILD_PROJECT_NAME --sort-order DESCENDING | jq -r '.ids[]')
+BUILD_IDS=$(aws --region $AWS_REGION codebuild list-builds-for-project --project-name $CODEBUILD_PROJECT_NAME --sort-order DESCENDING | jq -r '.ids[]')
 
 # Fetch more details for these builds
-BUILD_LIST=$(aws --region $AWS_REGION --profile tslkd codebuild batch-get-builds --ids $BUILD_IDS)
+BUILD_LIST=$(aws --region $AWS_REGION codebuild batch-get-builds --ids $BUILD_IDS)
 
 # Iterate each build and determine if one one of them are outdated and need to be stopped
 for row in $(echo "${BUILD_LIST}" | jq -r '.builds[] | @base64'); do
@@ -50,6 +50,6 @@ for row in $(echo "${BUILD_LIST}" | jq -r '.builds[] | @base64'); do
     if [ "$BUILD_STATUS" != "COMPLETED" ] && [ "$SOURCE_VERSION" == "$PREVIOUS_COMMIT_ID" ]; then
       echo "Build for the previous commit is still in progress! Build ID: $BUILD_ID"
       echo "Attempting to stop the older build..."
-      aws --region $AWS_REGION --profile tslkd codebuild stop-build --id $BUILD_ID
+      aws --region $AWS_REGION codebuild stop-build --id $BUILD_ID
     fi
 done

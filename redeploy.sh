@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script redeploys ECS services with new Docker image version (modified version based on https://serverfault.com/a/807447/241403)
 
-set -e
+set -Eeuxo pipefail
 
 while getopts r:c:s:i: option
 do

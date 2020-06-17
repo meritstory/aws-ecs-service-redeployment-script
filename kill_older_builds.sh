@@ -16,17 +16,17 @@ done
 
 if [ -z "$AWS_REGION" ]; then
     echo "exit: No AWS_REGION specified (-r parameter)"
-    exit 1;
+    exit;
 fi
 
 if [ -z "$CODEBUILD_PROJECT_NAME" ]; then
     echo "exit: No CODEBUILD_PROJECT_NAME specified (-p parameter)"
-    exit 1;
+    exit;
 fi
 
 if [ -z "$PREVIOUS_COMMIT_ID" ]; then
     echo "exit: No PREVIOUS_COMMIT_ID specified (-c parameter)"
-    exit 1;
+    exit;
 fi
 
 echo "AWS_REGION: " $AWS_REGION

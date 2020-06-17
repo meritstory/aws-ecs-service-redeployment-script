@@ -61,8 +61,9 @@ TASK_DEFINITION=$(echo $TASK_DEFINITION | jq ".containerDefinitions[0].image = \
 # Good way to get a list of supported properties is to send a request with an invalid property. Error message includes a list of supported properties.
 TASK_DEFINITION=$(echo $TASK_DEFINITION | jq '{family: .family, taskRoleArn: .taskRoleArn, executionRoleArn: .executionRoleArn, networkMode: .networkMode, containerDefinitions: .containerDefinitions, volumes: .volumes, placementConstraints: .placementConstraints, requestCompatibilities: .requesCompatibilities, cpu: .cpu, memory: .memory, tags: .tags, pidMode: .pidMode, ipcMode: .ipcMode, proxyConfiguration: .proxyConfiguration, inferenceAccelerators: .inferenceAccelerators}')
 
-# Remove properties with null values
-TASK_DEFINITION=$(echo $TASK_DEFINITION | jq 'del(.[] | nulls)')
+# Remove properties with empty values (null, [], 0)
+TASK_DEFINITION=$(echo $TASK_DEFINITION | jq 'del(.containerDefinitions[0][] | select(. == [] or . == null or . == 0))') # from container definitions
+TASK_DEFINITION=$(echo $TASK_DEFINITION | jq 'del(.[] | select(. == [] or . == null or . == 0))') # from the task itself
 
 # Deploy the updated task definition and retrieve its ARN
 TASK_ARN=`aws ecs register-task-definition --region $AWS_REGION --cli-input-json "$TASK_DEFINITION" | jq -r .taskDefinition.taskDefinitionArn`
